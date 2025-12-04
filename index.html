@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Algebra Lineare: Ultimate Master</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
+
+    <script>
+        window.MathJax = {
+            tex: { 
+                inlineMath: [['$', '$'], ['\\(', '\\)']], 
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            options: {
+                ignoreHtmlClass: 'tex2jax_ignore',
+                processHtmlClass: 'tex2jax_process'
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        :root {
+            --bg-main: #0f0f12;
+            --bg-col: #1a1a20;
+            --card-bg: #23232a;
+            --text-primary: #e2e8f0;
+            --text-muted: #94a3b8;
+            
+            /* Palette Colori */
+            --c-struct: #f59e0b; /* Arancio */
+            --c-matrix: #3b82f6; /* Blu */
+            --c-app: #ef4444;    /* Rosso */
+            --c-thm: #8b5cf6;    /* Viola */
+        }
+
+        body {
+            margin: 0; padding: 40px;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            line-height: 1.6;
+            transition: background 0.5s;
+        }
+
+        h1 { text-align: center; margin-bottom: 10px; color: #fff; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; }
+        p.subtitle { text-align: center; color: var(--text-muted); margin-bottom: 40px; font-size: 0.95rem; }
+
+        /* --- LAYOUT COLONNE --- */
+        .board-container {
+            display: flex; gap: 25px; justify-content: center; align-items: flex-start;
+            max-width: 1800px; margin: 0 auto;
+        }
+
+        .column {
+            flex: 1; background: var(--bg-col);
+            border-radius: 12px; padding: 20px; min-width: 320px;
+            border-top: 6px solid #ccc;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+
+        .col-struct { border-color: var(--c-struct); }
+        .col-matrix { border-color: var(--c-matrix); }
+        .col-app    { border-color: var(--c-app); }
+        .col-thm    { border-color: var(--c-thm); }
+
+        .col-header {
+            font-size: 1.2rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;
+            margin-bottom: 25px; text-align: center; padding-bottom: 15px;
+            border-bottom: 2px solid rgba(255,255,255,0.05);
+        }
+        .col-struct .col-header { color: var(--c-struct); }
+        .col-matrix .col-header { color: var(--c-matrix); }
+        .col-app .col-header { color: var(--c-app); }
+        .col-thm .col-header { color: var(--c-thm); }
+
+        /* --- CARDS & FOCUS MODE --- */
+        .concept-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 8px; margin-bottom: 20px;
+            overflow: hidden; 
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative;
+        }
+
+        /* Logica Focus: Oscura tutto tranne Active e Connected */
+        body.focus-mode .concept-card { opacity: 0.1; filter: grayscale(1); pointer-events: none; }
+        
+        body.focus-mode .concept-card.active,
+        body.focus-mode .concept-card.connected { 
+            opacity: 1; filter: grayscale(0); pointer-events: auto;
+            box-shadow: 0 0 30px rgba(0,0,0,0.6);
+            border-color: rgba(255,255,255,0.3);
+            transform: scale(1.01);
+            z-index: 10;
+        }
+        
+        /* Evidenziazione bordi in modalità focus */
+        body.focus-mode .concept-card.connected.group-struct { border-color: var(--c-struct); }
+        body.focus-mode .concept-card.connected.group-matrix { border-color: var(--c-matrix); }
+        body.focus-mode .concept-card.connected.group-app    { border-color: var(--c-app); }
+        body.focus-mode .concept-card.connected.group-thm    { border-color: var(--c-thm); }
+
+        .card-header {
+            padding: 18px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+            border-left: 5px solid transparent;
+            background: linear-gradient(90deg, rgba(255,255,255,0.03) 0%, transparent 100%);
+        }
+        .card-header:hover { background: rgba(255,255,255,0.08); }
+
+        .group-struct .card-header { border-left-color: var(--c-struct); }
+        .group-matrix .card-header { border-left-color: var(--c-matrix); }
+        .group-app    .card-header { border-left-color: var(--c-app); }
+        .group-thm    .card-header { border-left-color: var(--c-thm); }
+
+        .card-title { font-weight: 700; font-size: 1.05rem; margin: 0; color: #fff; }
+        .card-summary { font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; font-weight: 500; }
+        .toggle-icon { font-weight: bold; color: var(--text-muted); transition: transform 0.3s; }
+
+        /* Card Body Espanso */
+        .card-body {
+            max-height: 0; overflow: hidden; padding: 0 20px;
+            background: rgba(0,0,0,0.3); 
+            transition: max-height 0.6s ease, padding 0.4s ease;
+        }
+        .concept-card.active .card-body {
+            max-height: 2500px; /* Altezza ampia per contenere tutto il testo */
+            padding: 20px; border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .concept-card.active .toggle-icon { transform: rotate(180deg); color: #fff; }
+
+        /* Typography interna */
+        h4 { 
+            color: #fff; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px;
+            margin: 25px 0 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px;
+        }
+        h4:first-of-type { margin-top: 10px; }
+
+        p { margin-bottom: 12px; color: #d1d5db; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; color: #d1d5db; }
+        li { margin-bottom: 6px; }
+        strong { color: #fff; font-weight: 600; }
+
+        .highlight-box {
+            background: rgba(255,255,255,0.05); padding: 12px; border-radius: 6px;
+            margin: 15px 0; font-size: 0.95rem; border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .theorem-box {
+            background: rgba(139, 92, 246, 0.15); border-left: 3px solid var(--c-thm);
+            padding: 15px; margin: 15px 0; border-radius: 0 6px 6px 0; font-size: 0.95rem;
+        }
+
+        /* Chips di connessione */
+        .conn-container { 
+            display: flex; flex-wrap: wrap; gap: 8px; margin-top: 25px; padding-top: 15px; 
+            border-top: 1px dashed rgba(255,255,255,0.15); 
+        }
+        .conn-label { width: 100%; font-size: 0.75rem; text-transform: uppercase; color: #fff; margin-bottom: 8px; opacity: 0.7; letter-spacing: 1px; }
+        
+        .chip {
+            padding: 6px 12px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; cursor: pointer;
+            background: rgba(255,255,255,0.1); color: #ccc; border: 1px solid transparent; transition: 0.2s;
+            display: flex; align-items: center;
+        }
+        .chip:hover { background: rgba(255,255,255,0.2); color: #fff; border-color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+        .chip::before { content: '→'; margin-right: 6px; font-weight: bold; }
+
+        /* Fix per formule MathJax */
+        mjx-container { font-size: 1.1em !important; color: #e2e8f0 !important; }
+
+    </style>
+</head>
+<body>
+
+    <h1>Algebra Lineare: Ultimate Master</h1>
+    <p class="subtitle">Clicca su una scheda per aprire i contenuti e illuminare le connessioni logiche.</p>
+
+    <div class="board-container" id="board">
+
+        <div class="column col-struct">
+            <div class="col-header">1. Fondamenti</div>
+            
+            <div id="c-vector" class="concept-card group-struct" data-links="c-space c-span c-prodscal">
+                <div class="card-header" onclick="activateCard('c-vector')">
+                    <div><div class="card-title">Vettore</div><div class="card-summary">L'elemento fondamentale.</div></div><div class="toggle-icon">▼</div>
+                </div>
+                <div class="card-body">
+                    <p>Un vettore è un oggetto matematico che può essere sommato ad altri vettori e moltiplicato per numeri (scalari). Algebricamente, in uno spazio a dimensione finita, è rappresentato da una n-upla ordinata:</p>
+                    $$ v = \begin{pmatrix} x_1 \\ \vdots \\ x_n \end{pmatrix} $$
+                    <p>I vettori non sono solo "frecce": possono essere polinomi, funzioni, matrici o segnali, purché rispettino le regole dello spazio vettoriale.</p>
+                    <div class="conn-container">
+                        <div class="conn-label">Concetti Collegati</div>
+                        <div class="chip" onclick="activateCard('c-space')">Spazio Vettoriale</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="c-space" class="concept-card group-struct" data-links="c-vector c-subspace c-base">
+                <div class="card-header" onclick="activateCard('c-space')">
+                    <div><div class="card-title">Spazio Vettoriale</div><div class="card-summary">La struttura $(V, +, \cdot)$.</div></div><div class="toggle-icon">▼</div>
+                </div>
+                <div class="card-body">
+                    <p>Uno spazio vettoriale su un campo $K$ (come $\mathbb{R}$) è un insieme $V$ dotato di due operazioni:</p>
+                    <ul>
+                        <li><strong>Somma interna:</strong> $(u+v) \in V$. Rende $V$ un gruppo abeliano (commutativo).</li>
+                        <li><strong>Prodotto esterno:</strong> $(\lambda v) \in V$. Soddisfa proprietà distributiva e associativa.</li>
+                    </ul>
+                    <div class="highlight-box">
+                        <strong>Condizione Fondamentale:</strong> Deve esistere un elemento neutro (vettore nullo $0_V$) tale che $v + 0_V = v$ per ogni $v$.
+                    </div>
+                    <div class="theorem-box"><strong>Unicità:</strong> L'elemento neutro e l'opposto di ogni vettore sono unici.</div>
+                    <div class="conn-container">
+                        <div class="conn-label">Genera</div>
+                        <div class="chip" onclick="activateCard('c-subspace')">Sottospazio</div>
+                        <div class="chip" onclick="activateCard('c-base')">Base</div>
+                    </div>
+                </div>
+            </div>
+
+             <div id="c-subspace" class="concept-card group-struct" data-links="c-space c-span c-ker c-im">
+                <div class="card-header" onclick="activateCard('c-subspace')">
+                    <div><div class="card-title">Sottospazio</div><div class="card-summary">Uno spazio dentro lo spazio.</div></div><div class="toggle-icon">▼</div>
+                </div>
+                <div class="card-body">
+                    <p>Un sottoinsieme $W \subseteq V$ è un sottospazio se è "chiuso" rispetto alle operazioni lineari. Per verificarlo si usa il <strong>Test del Sottospazio</strong>:</p>
+                    <ol>
+                        <li>$0_V \in W$. (Deve contenere lo zero!)</li>
+                        <li>Se $w_1, w_2 \in W \implies w_1+w_2 \in W$.</li>
+                        <li>Se $w \in W, \lambda \in K \implies \lambda w \in W$.</li>
+                    </ol>
+                    <p>Esempi: Il Kernel e l'Immagine sono sottospazi. Una retta che non passa per l'origine NON è un sottospazio.</p>
+                </div>
+            </div>
+
+            <div id="c-indep" class="concept-card group-struct" data-links="c-base c-rank c-ker">
+                <div class="card-header" onclick="activateCard('c-indep')">
+                    <div><div class="card-title">Indipendenza Lineare</div><div class="card-summary">Assenza di ridondanza.</div></div><div class="toggle-icon">▼</div>
+                </div>
+                <div class="card-body">
+                    <p>I vettori $v_1, \dots, v_n$ si dicono <strong>Linearmente Indipendenti</strong> se l'unica combinazione lineare che dà il vettore nullo è quella banale:</p>
+                    $$ \lambda_1 v_1 + \dots + \lambda_n v_n = 0 \implies \lambda_1 = \dots = \lambda_n = 0 $$
+                    <p>Se esiste anche una sola soluzione non nulla, sono <strong>Dipendenti</strong>. Questo significa che almeno un vettore è "superfluo" perché esprimibile come somma degli altri.</p>
+                    <div class="conn-container">
+                        <div class="conn-label">Fondamentale per</div>
+                        <div class="chip" onclick="activateCard('c-base')">Base</div>
+                        <div class="chip" onclick="activateCard('c-rank')">Rango</div>
+                    </div>
+                </div>
+            </div>
+
+             <div id="c-base" class="concept-card group-struct" data-links="c-space c-indep c-span c-matrix">
+                <div class="card-header" onclick="activateCard('c-base')">
+                    <div><div class="card-title">Base & Dimensione</div><div class="card-summary">Generatori + Indipendenti.</div></div><div class="toggle-icon">▼</div>
+                </div>
+                <div class="card-body">
+                    <p>Una <strong>Base</strong> è un insieme di vettori che soddisfa due condizioni:</p>
+                    <ol>
+                        <li><strong>Genera lo spazio:</strong> Ogni vettore può essere scritto come loro combinazione lineare.</li>
+                        <li><strong>È Indipendente:</strong> Non c'è ridondanza.</li>
+                    </ol>
+                    <p>La <strong>Dimensione</strong> $\dim(V)$ è il numero di elementi della base. È un invariante dello spazio (tutte le basi hanno lo stesso numero di elementi).</p>
+                    <div class="theorem-box"><strong>Teorema:</strong> Ogni vettore $v$ si scrive in modo <em>unico</em> come combinazione lineare dei vettori della base.</div>
+                    <div class="conn-container">
+                        <div class="conn-label">Permette di costruire</div>
+                        <div class="chip" onclick="activateCard('c-matrix')">Matrice</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="column col-matrix">
+            <div class="col-header">2. Matrici</div>
+
+            <div id="c-matrix" class="concept-card group-matrix" data-links="c-base c-applin c-rank c-det">
+                <div class="card-header" onclick="activateCard('c-matrix')">
+                    <div><div class="card-title">Matrice</div><div class="card-summary">Rappresentazione $m \times n$.</div></div><div class="toggle-icon">▼</div>
+                </div>
+                <div class="card-body">
+                    <p>Una matrice $A \in M_{m,n}$ è una tabella di scalari. Se associata a un'applicazione lineare $f: V \to W$ (fissate le basi):</p>
+                    <ul>
+                        <li>Il numero di <strong>colonne ($n$)</strong> corrisponde alla dimensione del Dominio $V$.</li>
+                        <li>Il numero di <strong>righe ($m$)</strong> corrisponde alla dimensione del Codominio $W$.</li>
+                        <li>La colonna $j$-esima contiene le coordinate dell'immagine del $j$-esimo vettore della base di $V$.</li>
+                    </ul>
+                    <div class="conn-container">
+                        <div class="conn-label">Rappresenta</div>
+                        <div class="chip" onclick="activateCard('c-applin')">App. Lineare</div>
+                        <div class="conn-label">Proprietà</div>
+                        <div class="chip" onclick="activateCard('c-rank')">Rango</div>
+                        <div class="chip" onclick="activateCard('c-det')">Determinante</div>
+                    </div>
+                </div>
+            </div>
+
+             <div id="c-rank" class="concept-card group-matrix" data-links="c-matrix c-im c-rouche c-kronecker c-nullity c-indep">
+                <div class="card-header" onclick="activateCard('c-rank')">
+                    <div><div class="card-title">Rango (Rank)</div><div class="card-summary">La "vera" dimensione.</div></div><div class="toggle-icon">▼</div>
+                </div>
+                <div class="card-body">
+                    <p>Il rango è il numero massimo di righe (o colonne) linearmente indipendenti. Indica la dimensione effettiva dell'Immagine dell'applicazione.</p>
+                    <div class="theorem-box"><strong>Teorema:</strong> Rango per righe $\equiv$ Rango per colonne.</div>
+                    <h4>Calcolo del Rango:</h4>
+                    <ol>
+                        <li><strong>Gauss:</strong> Riduci a scalini e conta i pivot.</li>
+                        <li><strong>Minori (Kronecker):</strong> È l'ordine massimo di un minore con determinante non nullo.</li>
+                    </ol>
+                    <div class="conn-container">
+                        <div class="conn-label">Connesso a</div>
+                        <div class="chip" onclick="activateCard('c-im')">Immagine</div>
+                        <div class="chip" onclick="activateCard('c-rouche')">Rouché-Capelli</div>
+                        <div class="chip" onclick="activateCard('c-kronecker')">Kronecker</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="c-det" class="concept-card group-matrix" data-links="c-matrix c-eigval c-kronecker">
+                <div class="card-header" onclick="activateCard('c-det')">
+                    <div><div class="card-title">Determinante</div><div class="card-summary">Test invertibilità.</div></div><div class="toggle-icon">▼</div>
+                </div>
+                <div class="card-body">
+                    <p>Definito solo per matrici quadrate ($n \times n$).</p>
+                    <ul>
+                        <li>$\det(A) = 0$: Matrice <strong>Singolare</strong> (c'è collasso dimensionale). Rango $< n$.</li>
+                        <li>$\det(A) \neq 0$: Matrice <strong>Invertibile</strong>. Rango $= n$. Le colonne sono una base.</li>
+                    </ul>
+                    <div class="theorem-box"><strong>Binet:</strong> $\det(AB) = \det(A)\det(B)$.</div>
+                    <p><strong>Laplace:</strong> Metodo per calcolare il determinante sviluppando lungo una riga o colonna.</p>
+                    <div class="conn-container">
+                        <div class="conn-label">Fondamentale per</div>
+                        <div class="chip" onclick="activateCard('c-eigval')">Autovalori</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="column col-app">
+            <div class="col-header">3. App. Lineari</div>
+
+            <div id="c-applin" class="concept-card group-app" data-links="c-matrix c-ker c-im c-space">
+                <div class="card-header" onclick="activateCard('c-applin')">
+                    <div><div class="card-title">Applicazione Lineare</div><div class="card-summary">Conserva la struttura.</div></div><div class="toggle-icon">▼</div>
+                </div>
+                <div class="card-body">
+                    <p>Una funzione $f: V \to W$ che rispetta le combinazioni lineari:</p>
+                    $$ f(\lambda v + \mu w) = \lambda f(v) + \mu f(w) $$
+                    <p>Significa che mandare la somma è uguale alla somma delle immagini. Le linee rette rimangono rette, l'origine rimane fissa.</p>
+                    <div class="conn-container">
+                        <div class="conn-label">Struttura</div>
+                        <div class="chip" onclick="activateCard('c-matrix')">Matrice</div>
+                        <div class="chip" onclick="activateCard('c-ker')">Ker</div>
+                        <div class="chip" onclick="activateCard('c-im')">Im</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="c-ker" class="concept-card group-app" data-links="c-applin c-nullity c-eigspace c-indep">
+                <div class="card-header" onclick="activateCard('c-ker')">
+                    <div><div class="card-title">Ker (Nucleo)</div><div class="card-summary">$f(v)=0$. Iniettività.</div></div><div class="toggle-icon">▼</div>
+                </div>
+                <div class="card-body">
+                    <p>Il Kernel è l'insieme di tutti i vettori del dominio che vengono "distrutti" (mandati a 0) dalla funzione.</p>
+                    <ul>
+                        <li>È un sottospazio del Dominio.</li>
+                        <li>Si trova risolvendo il sistema omogeneo $Ax = 0$.</li>
+                        <li>Se $\text{Ker}(f) = \{0\}$, allora la funzione è <strong>Iniettiva</strong> (non perde informazioni).</li>
+                    </ul>
+                    <div class="conn-container">
+                        <div class="conn-label">Relazioni</div>
+                        <div class="chip" onclick="activateCard('c-nullity')">Rank-Nullity</div>
+                        <div class="chip" onclick="activateCard('c-eigspace')">Autospazio</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="c-im" class="concept-card group-app" data-links="c-applin c-rank c-nullity">
+                <div class="card-header" onclick="activateCard('c-im')">
+                    <div><div class="card-title">Im (Immagine)</div><div class="card-summary">Vettori raggiunti. Suriettività.</div></div><div class="toggle-icon">▼</div>
+                </div>
+                <div class="card-body">
+                    <p>L'Immagine è l'insieme di tutti i possibili vettori di output ($w$) che la funzione può generare.</p>
+                    <ul>
+                        <li>È il sottospazio generato dalle colonne della matrice associata.</li>
+                        <li>$\dim(\text{Im}) = \text{Rango}(A)$.</li>
+                        <li>Se $\dim(\text{Im}) = \dim(Codominio)$, la funzione è <strong>Suriettiva</strong>.</li>
+                    </ul>
+                    <div class="conn-container">
+                        <div class="conn-label">Relazioni</div>
+                        <div class="chip" onclick="activateCard('c-rank')">Rango</div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="border-top: 2px dashed rgba(239, 68, 68, 0.3); margin-top: 25px; padding-top: 20px;">
+                <h4 style="color: var(--c-app); text-align: center; border:none; margin:0 0 15px 0;">Flusso Spettrale</h4>
+                
+                <div id="c-eigval" class="concept-card group-app" data-links="c-det c-eigspace c-spectral">
+                    <div class="card-header" onclick="activateCard('c-eigval')">
+                        <div><div class="card-title">1. Autovalori ($\lambda$)</div><div class="card-summary">Radici del polinomio.</div></div><div class="toggle-icon">▼</div>
+                    </div>
+                    <div class="card-body">
+                        <p>Scalari $\lambda$ tali che $Av = \lambda v$. Per trovarli, cerchiamo quando la matrice $(A - \lambda I)$ non è invertibile:</p>
+                        $$ \det(A - \lambda I) = 0 $$
+                        <p><strong>Molteplicità Algebrica ($m_a$):</strong> Il numero di volte che $\lambda$ appare come radice del polinomio caratteristico.</p>
+                        <div class="conn-container">
+                            <div class="conn-label">Usa</div>
+                            <div class="chip" onclick="activateCard('c-det')">Determinante</div>
+                            <div class="conn-label">Genera</div>
+                            <div class="chip" onclick="activateCard('c-eigspace')">Autospazio</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="c-eigspace" class="concept-card group-app" data-links="c-eigval c-ker c-spectral">
+                    <div class="card-header" onclick="activateCard('c-eigspace')">
+                        <div><div class="card-title">2. Autospazi</div><div class="card-summary">$V_\lambda = \text{Ker}(A - \lambda I)$.</div></div><div class="toggle-icon">▼</div>
+                    </div>
+                    <div class="card-body">
+                        <p>Per ogni autovalore, l'Autospazio contiene tutti gli <strong>Autovettori</strong> relativi (più lo zero). Si calcola trovando il Kernel della matrice traslata:</p>
+                        $$ (A - \lambda I)v = 0 $$
+                        <p><strong>Molteplicità Geometrica ($m_g$):</strong> La dimensione di questo autospazio. Vale sempre $1 \le m_g \le m_a$.</p>
+                        <div class="conn-container">
+                            <div class="conn-label">Basato su</div>
+                            <div class="chip" onclick="activateCard('c-ker')">Ker</div>
+                        </div>
+                    </div>
+                </div>
+                
+                 <div id="c-diag" class="concept-card group-app" data-links="c-eigval c-eigspace c-spectral">
+                    <div class="card-header" onclick="activateCard('c-diag')">
+                        <div><div class="card-title">3. Diagonalizzazione</div><div class="card-summary">Quando è possibile?</div></div><div class="toggle-icon">▼</div>
+                    </div>
+                    <div class="card-body">
+                        <p>Una matrice $A$ è diagonalizzabile se esiste una base interamente formata da autovettori. Questo accade se e solo se:</p>
+                        <ol>
+                            <li>La somma delle molteplicità algebriche è $n$.</li>
+                            <li>Per ogni $\lambda$, $m_a(\lambda) = m_g(\lambda)$ (regolarità).</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="column col-thm">
+            <div class="col-header">4. Teoremi Chiave</div>
+
+            <div id="c-nullity" class="concept-card group-thm" data-links="c-rank c-ker c-im">
+                <div class="card-header" onclick="activateCard('c-nullity')">
+                    <div><div class="card-title">Rank-Nullity</div><div class="card-summary">Teorema delle dimensioni.</div></div><div class="toggle-icon">▼</div>
+                </div>
+                <div class="card-body">
+                    <p>Il teorema fondamentale che collega le dimensioni. Per $f: V \to W$:</p>
+                    $$ \dim(V) = \dim(\text{Ker}(f)) + \dim(\text{Im}(f)) $$
+                    <p><strong>Interpretazione:</strong> Le dimensioni dello spazio di partenza si dividono tra quelle che "collassano" (Kernel) e quelle che "sopravvivono" (Immagine/Rango).</p>
+                    <div class="conn-container">
+                        <div class="conn-label">Collega</div>
+                        <div class="chip" onclick="activateCard('c-ker')">Ker</div>
+                        <div class="chip" onclick="activateCard('c-im')">Im</div>
+                        <div class="chip" onclick="activateCard('c-rank')">Rango</div>
+                    </div>
+                </div>
+            </div>
+
+             <div id="c-rouche" class="concept-card group-thm" data-links="c-rank">
+                <div class="card-header" onclick="activateCard('c-rouche')">
+                    <div><div class="card-title">Rouché-Capelli</div><div class="card-summary">Sistemi $Ax=b$.</div></div><div class="toggle-icon">▼</div>
+                </div>
+                <div class="card-body">
+                    <p>Stabilisce se un sistema lineare ammette soluzioni. Sia $A|b$ la matrice completa:</p>
+                    <ul>
+                        <li>Se $\text{rk}(A) \neq \text{rk}(A|b) \implies$ <strong>Impossibile</strong>.</li>
+                        <li>Se $\text{rk}(A) = \text{rk}(A|b) = n \implies$ <strong>1 Soluzione</strong>.</li>
+                        <li>Se $\text{rk}(A) = \text{rk}(A|b) < n \implies$ <strong>Infinite Soluzioni</strong> ($\infty^{n-rk}$).</li>
+                    </ul>
+                    <div class="conn-container">
+                        <div class="conn-label">Dipende da</div>
+                        <div class="chip" onclick="activateCard('c-rank')">Rango</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="c-kronecker" class="concept-card group-thm" data-links="c-rank c-det">
+                <div class="card-header" onclick="activateCard('c-kronecker')">
+                    <div><div class="card-title">Kronecker (Orlati)</div><div class="card-summary">Calcolo del Rango.</div></div><div class="toggle-icon">▼</div>
+                </div>
+                <div class="card-body">
+                    <p>Metodo per calcolare il Rango. Il rango è $r$ se:</p>
+                    <ol>
+                        <li>Esiste un minore di ordine $r$ con $\det \neq 0$.</li>
+                        <li>Tutti i minori di ordine $r+1$ che "orlano" (includono) il precedente hanno $\det = 0$.</li>
+                    </ol>
+                    <div class="conn-container">
+                        <div class="conn-label">Usa</div>
+                        <div class="chip" onclick="activateCard('c-det')">Determinante</div>
+                    </div>
+                </div>
+            </div>
+
+             <div id="c-spectral" class="concept-card group-thm" data-links="c-eigval c-diag">
+                <div class="card-header" onclick="activateCard('c-spectral')">
+                    <div><div class="card-title">Teorema Spettrale</div><div class="card-summary">Matrici Simmetriche.</div></div><div class="toggle-icon">▼</div>
+                </div>
+                <div class="card-body">
+                    <p>Un teorema molto potente per le matrici simmetriche reali ($A=A^T$):</p>
+                    <ol>
+                        <li>Tutti gli autovalori sono Reali.</li>
+                        <li>Autovettori di autovalori diversi sono Ortogonali.</li>
+                        <li>La matrice è <strong>sempre</strong> diagonalizzabile.</li>
+                    </ol>
+                    <div class="conn-container">
+                        <div class="conn-label">Garantisce</div>
+                        <div class="chip" onclick="activateCard('c-diag')">Diagonalizzazione</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        function activateCard(cardId) {
+            const card = document.getElementById(cardId);
+            const body = document.body;
+            
+            // Toggle off se clicco sullo stesso
+            if (card.classList.contains('active')) {
+                resetView();
+                return;
+            }
+
+            // Resetta stato
+            resetView();
+
+            // Attiva Focus Mode
+            body.classList.add('focus-mode');
+            card.classList.add('active');
+
+            // Trova e attiva i collegati
+            const links = card.getAttribute('data-links');
+            if (links) {
+                const linkedIds = links.split(' ');
+                linkedIds.forEach(id => {
+                    const linkedCard = document.getElementById(id);
+                    if (linkedCard) linkedCard.classList.add('connected');
+                });
+            }
+            
+            // Scroll per centratura (opzionale, utile su mobile)
+            card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // Click fuori per resettare
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('.concept-card')) {
+                resetView();
+            }
+        });
+
+        function resetView() {
+            document.body.classList.remove('focus-mode');
+            document.querySelectorAll('.concept-card').forEach(c => {
+                c.classList.remove('active', 'connected');
+            });
+        }
+    </script>
+
+</body>
+</html>
