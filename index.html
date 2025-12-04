@@ -25,16 +25,16 @@
     <style>
         :root {
             --bg-main: #0f0f12;
-            --bg-col: #1a1a20;
-            --card-bg: #23232a;
+            --bg-col: rgba(26, 26, 32, 0.85); /* Leggera trasparenza per vedere lo sfondo */
+            --card-bg: rgba(35, 35, 42, 0.95);
             --text-primary: #e2e8f0;
             --text-muted: #94a3b8;
             
             /* Palette Colori */
-            --c-struct: #f59e0b; /* Arancio */
-            --c-matrix: #3b82f6; /* Blu */
-            --c-app: #ef4444;    /* Rosso */
-            --c-thm: #8b5cf6;    /* Viola */
+            --c-struct: #f59e0b; 
+            --c-matrix: #3b82f6; 
+            --c-app: #ef4444;    
+            --c-thm: #8b5cf6;    
         }
 
         body {
@@ -44,24 +44,39 @@
             font-family: 'Inter', sans-serif;
             font-size: 15px;
             line-height: 1.6;
-            transition: background 0.5s;
             display: flex;
             flex-direction: column;
             min-height: 100vh;
+            position: relative;
+            z-index: 1;
         }
 
-        h1 { text-align: center; margin-bottom: 10px; color: #fff; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; }
+        /* --- BACKGROUND CANVAS --- */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1; /* Dietro a tutto */
+            pointer-events: none; /* Non interferisce col click */
+            opacity: 0.6; /* Sottile */
+        }
+
+        h1 { text-align: center; margin-bottom: 10px; color: #fff; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 4px 30px rgba(0,0,0,0.5); }
         p.subtitle { text-align: center; color: var(--text-muted); margin-bottom: 40px; font-size: 0.95rem; }
 
         /* --- LAYOUT COLONNE --- */
         .board-container {
             display: flex; gap: 25px; justify-content: center; align-items: flex-start;
             max-width: 1800px; margin: 0 auto;
-            flex: 1; /* Spinge il footer in basso */
+            flex: 1; 
         }
 
         .column {
-            flex: 1; background: var(--bg-col);
+            flex: 1; 
+            background: var(--bg-col); /* Sfondo semi-trasparente */
+            backdrop-filter: blur(5px); /* Effetto vetro sfocato */
             border-radius: 12px; padding: 20px; min-width: 320px;
             border-top: 6px solid #ccc;
             box-shadow: 0 4px 20px rgba(0,0,0,0.5);
@@ -92,7 +107,6 @@
             position: relative;
         }
 
-        /* Logica Focus: Oscura tutto tranne Active e Connected */
         body.focus-mode .concept-card { opacity: 0.1; filter: grayscale(1); pointer-events: none; }
         
         body.focus-mode .concept-card.active,
@@ -104,7 +118,6 @@
             z-index: 10;
         }
         
-        /* Evidenziazione bordi in modalità focus */
         body.focus-mode .concept-card.connected.group-struct { border-color: var(--c-struct); }
         body.focus-mode .concept-card.connected.group-matrix { border-color: var(--c-matrix); }
         body.focus-mode .concept-card.connected.group-app    { border-color: var(--c-app); }
@@ -126,19 +139,17 @@
         .card-summary { font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; font-weight: 500; }
         .toggle-icon { font-weight: bold; color: var(--text-muted); transition: transform 0.3s; }
 
-        /* Card Body Espanso */
         .card-body {
             max-height: 0; overflow: hidden; padding: 0 20px;
             background: rgba(0,0,0,0.3); 
             transition: max-height 0.6s ease, padding 0.4s ease;
         }
         .concept-card.active .card-body {
-            max-height: 2500px; /* Altezza ampia per contenere tutto il testo */
+            max-height: 2500px; 
             padding: 20px; border-top: 1px solid rgba(255,255,255,0.1);
         }
         .concept-card.active .toggle-icon { transform: rotate(180deg); color: #fff; }
 
-        /* Typography interna */
         h4 { 
             color: #fff; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px;
             margin: 25px 0 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px;
@@ -160,7 +171,6 @@
             padding: 15px; margin: 15px 0; border-radius: 0 6px 6px 0; font-size: 0.95rem;
         }
 
-        /* Chips di connessione */
         .conn-container { 
             display: flex; flex-wrap: wrap; gap: 8px; margin-top: 25px; padding-top: 15px; 
             border-top: 1px dashed rgba(255,255,255,0.15); 
@@ -175,10 +185,8 @@
         .chip:hover { background: rgba(255,255,255,0.2); color: #fff; border-color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
         .chip::before { content: '→'; margin-right: 6px; font-weight: bold; }
 
-        /* Fix per formule MathJax */
         mjx-container { font-size: 1.1em !important; color: #e2e8f0 !important; }
 
-        /* --- FOOTER STYLING --- */
         footer {
             margin-top: 80px;
             padding: 40px 0;
@@ -186,6 +194,7 @@
             text-align: center;
             color: var(--text-muted);
             font-size: 0.9rem;
+            background: var(--bg-main); /* Assicura leggibilità */
         }
 
         footer a {
@@ -197,12 +206,12 @@
         }
 
         footer a:hover {
-            color: var(--c-matrix); /* Blu accent */
+            color: var(--c-matrix); 
             border-bottom-style: solid;
         }
 
         .heart {
-            color: var(--c-app); /* Rosso accent */
+            color: var(--c-app); 
             display: inline-block;
             animation: beat 1.5s infinite;
         }
@@ -215,6 +224,8 @@
     </style>
 </head>
 <body>
+
+    <canvas id="bg-canvas"></canvas>
 
     <h1>Algebra Lineare: Mappa Concettuale</h1>
     <p class="subtitle">Clicca su una scheda per aprire i contenuti e illuminare le connessioni logiche.</p>
@@ -597,11 +608,10 @@
                 });
             }
             
-            // Scroll per centratura (opzionale, utile su mobile)
+            // Scroll per centratura
             card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
-        // Click fuori per resettare
         document.addEventListener('click', function(event) {
             if (!event.target.closest('.concept-card')) {
                 resetView();
@@ -614,6 +624,104 @@
                 c.classList.remove('active', 'connected');
             });
         }
+
+        /* --- BACKGROUND ANIMATION SCRIPT --- */
+        (function() {
+            const canvas = document.getElementById('bg-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            let w, h;
+            let particles = [];
+            
+            // Configurazione
+            const particleCount = window.innerWidth < 768 ? 40 : 80; // Meno particelle su mobile
+            const connectionDist = 180;
+            const speed = 0.3;
+
+            // Colori dai CSS (Blu e Viola per tema math)
+            const colors = ['#3b82f6', '#8b5cf6', '#6366f1']; 
+
+            class Particle {
+                constructor() {
+                    this.x = Math.random() * w;
+                    this.y = Math.random() * h;
+                    this.vx = (Math.random() - 0.5) * speed;
+                    this.vy = (Math.random() - 0.5) * speed;
+                    this.size = Math.random() * 2 + 1;
+                    this.color = colors[Math.floor(Math.random() * colors.length)];
+                }
+
+                update() {
+                    this.x += this.vx;
+                    this.y += this.vy;
+
+                    // Rimbalzo sui bordi
+                    if (this.x < 0 || this.x > w) this.vx *= -1;
+                    if (this.y < 0 || this.y > h) this.vy *= -1;
+                }
+
+                draw() {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.fillStyle = this.color;
+                    ctx.fill();
+                }
+            }
+
+            function init() {
+                resize();
+                particles = [];
+                for (let i = 0; i < particleCount; i++) {
+                    particles.push(new Particle());
+                }
+                loop();
+            }
+
+            function resize() {
+                w = canvas.width = window.innerWidth;
+                h = canvas.height = window.innerHeight;
+            }
+
+            function drawLines() {
+                for (let i = 0; i < particles.length; i++) {
+                    for (let j = i + 1; j < particles.length; j++) {
+                        const dx = particles[i].x - particles[j].x;
+                        const dy = particles[i].y - particles[j].y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+
+                        if (dist < connectionDist) {
+                            // Opacità basata sulla distanza
+                            const opacity = 1 - (dist / connectionDist);
+                            ctx.beginPath();
+                            ctx.strokeStyle = `rgba(100, 116, 139, ${opacity * 0.2})`; // Grigio-bluastro molto tenue
+                            ctx.lineWidth = 1;
+                            ctx.moveTo(particles[i].x, particles[i].y);
+                            ctx.lineTo(particles[j].x, particles[j].y);
+                            ctx.stroke();
+                        }
+                    }
+                }
+            }
+
+            function loop() {
+                ctx.clearRect(0, 0, w, h);
+                
+                particles.forEach(p => {
+                    p.update();
+                    p.draw();
+                });
+                
+                drawLines();
+                requestAnimationFrame(loop);
+            }
+
+            window.addEventListener('resize', () => {
+                resize();
+                // Reset parziale delle posizioni se necessario, o solo aggiornamento dimensioni
+            });
+
+            init();
+        })();
     </script>
 
 </body>
